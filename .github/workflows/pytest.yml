@@ -1,47 +1,88 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+# =========================================================
+# GitHub Actions Workflow for Pytest API Testing
+# =========================================================
 
+# Workflow name shown in GitHub Actions tab
 name: Pytest API Testing
 
+# =========================================================
+# EVENTS THAT TRIGGER THE WORKFLOW
+# =========================================================
 on:
+  # Trigger workflow when code is pushed to main branch
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - "main"
 
+  # Trigger workflow when Pull Request is created for main branch
+  pull_request:
+    branches:
+      - "main"
+
+  # Allows manual execution from GitHub Actions UI
   workflow_dispatch:
 
+# =========================================================
+# PERMISSIONS
+# =========================================================
 permissions:
+  # Gives read-only access to repository contents
   contents: read
 
+# =========================================================
+# JOBS SECTION
+# =========================================================
 jobs:
-  Pytes-API-Testing:
-
+  # Job name
+  Pytest-API-Testing:
+    # GitHub-hosted runner environment
     runs-on: ubuntu-latest
 
+    # =====================================================
+    # STEPS EXECUTED INSIDE THE JOB
+    # =====================================================
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        
-    - name: Test with pytest
-      run: |
-        ENV=dev pytest
+      # ---------------------------------------------------
+      # Step 1: Checkout repository code
+      # ---------------------------------------------------
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Archive Pytest allure test report
-      uses: actions/upload-artifact@v3
-      with:
-        name: Pytest-allure-report
-        path: allure-results
-          
-    - name: Upload Pytest allure report to GitHub
-      uses: actions/upload-artifact@v3
-      with:
-        name: Pytest-allure-report
-        path: allure-results
+      # ---------------------------------------------------
+      # Step 2: Install Python
+      # ---------------------------------------------------
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      # ---------------------------------------------------
+      # Step 3: Install project dependencies
+      # ---------------------------------------------------
+      - name: Install Dependencies
+        run: |
+          # Upgrade pip to latest version
+          python -m pip install --upgrade pip
+
+          # Install packages from requirements.txt
+          pip install -r requirements.txt
+
+      # ---------------------------------------------------
+      # Step 4: Run pytest test cases
+      # ---------------------------------------------------
+      - name: Run Pytest API Tests
+        run: |
+          # Set environment as dev and execute tests
+          ENV=dev pytest
+
+      # ---------------------------------------------------
+      # Step 5: Upload Allure report as artifact
+      # ---------------------------------------------------
+      - name: Upload Allure Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          # Artifact name visible in GitHub Actions
+          name: Pytest-allure-report
+
+          # Folder generated after pytest execution
+          path: allure-results
