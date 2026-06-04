@@ -1,5 +1,6 @@
 # =========================================================
 # GitHub Actions Workflow for Pytest API Testing
+# With Allure HTML Report Generation
 # =========================================================
 
 # Workflow name shown in GitHub Actions tab
@@ -35,7 +36,7 @@ permissions:
 jobs:
   # Job name
   Pytest-API-Testing:
-    # GitHub-hosted runner environment
+    # GitHub-hosted Ubuntu runner
     runs-on: ubuntu-latest
 
     # =====================================================
@@ -61,28 +62,52 @@ jobs:
       # ---------------------------------------------------
       - name: Install Dependencies
         run: |
-          # Upgrade pip to latest version
+          # Upgrade pip
           python -m pip install --upgrade pip
 
-          # Install packages from requirements.txt
+          # Install dependencies from requirements.txt
           pip install -r requirements.txt
 
       # ---------------------------------------------------
-      # Step 4: Run pytest test cases
+      # Step 4: Install Java
+      # Allure requires Java to generate HTML reports
+      # ---------------------------------------------------
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      # ---------------------------------------------------
+      # Step 5: Install Allure Commandline Tool
+      # ---------------------------------------------------
+      - name: Install Allure
+        run: |
+          npm install -g allure-commandline --save-dev
+
+      # ---------------------------------------------------
+      # Step 6: Run Pytest and Generate Allure Results
       # ---------------------------------------------------
       - name: Run Pytest API Tests
         run: |
-          # Set environment as dev and execute tests
-          ENV=dev pytest
+          # ENV variable for test environment
+          ENV=dev pytest --alluredir=allure-results
 
       # ---------------------------------------------------
-      # Step 5: Upload Allure report as artifact
+      # Step 7: Generate Allure HTML Report
       # ---------------------------------------------------
-      - name: Upload Allure Test Report
+      - name: Generate Allure HTML Report
+        run: |
+          allure generate allure-results --clean -o allure-report
+
+      # ---------------------------------------------------
+      # Step 8: Upload HTML Report as Artifact
+      # ---------------------------------------------------
+      - name: Upload Allure HTML Report
         uses: actions/upload-artifact@v4
         with:
           # Artifact name visible in GitHub Actions
-          name: Pytest-allure-report
+          name: allure-html-report
 
-          # Folder generated after pytest execution
-          path: allure-results
+          # Upload generated HTML report folder
+          path: allure-report
